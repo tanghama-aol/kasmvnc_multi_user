@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-house"></i> 欢迎使用KasmVNC多用户管理系统
+        </h1>
+    </div>
+</div>
+
+<!-- 系统状态卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="totalUsers">-</h4>
+                        <p class="card-text">总用户数</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-people fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="activeUsers">-</h4>
+                        <p class="card-text">活跃用户</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-person-check fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="runningDisplays">-</h4>
+                        <p class="card-text">运行显示器</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-display fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="cpuUsage">-</h4>
+                        <p class="card-text">CPU使用率</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-cpu fs-1"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-lightning"></i> 快速操作</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="d-grid">
+                            <button class="btn btn-primary btn-lg" onclick="showCreateUserModal()">
+                                <i class="bi bi-person-plus"></i> 创建用户
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-grid">
+                            <button class="btn btn-success btn-lg" onclick="startAllServices()">
+                                <i class="bi bi-play-circle"></i> 启动所有服务
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="d-grid">
+                            <button class="btn btn-warning btn-lg" onclick="showDesktopSyncModal()">
+                                <i class="bi bi-arrow-repeat"></i> 同步桌面
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 系统信息 -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-info-circle"></i> 系统信息</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>服务版本:</strong></td>
+                        <td id="serviceVersion">-</td>
+                    </tr>
+                    <tr>
+                        <td><strong>运行时间:</strong></td>
+                        <td id="uptime">-</td>
+                    </tr>
+                    <tr>
+                        <td><strong>内存使用:</strong></td>
+                        <td id="memoryUsage">-</td>
+                    </tr>
+                    <tr>
+                        <td><strong>磁盘使用:</strong></td>
+                        <td id="diskUsage">-</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-clock-history"></i> 最近操作</h5>
+            </div>
+            <div class="card-body">
+                <div id="recentLogs" style="max-height: 300px; overflow-y: auto;">
+                    <div class="text-center text-muted">
+                        <i class="bi bi-clock"></i> 加载中...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 创建用户模态框 -->
+<div class="modal fade" id="createUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">创建用户</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-3">
+                        <label for="userCount" class="form-label">用户数量</label>
+                        <input type="number" class="form-control" id="userCount" min="1" max="50" value="5" required>
+                        <div class="form-text">创建的用户数量（1-50）</div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableHttps">
+                            <label class="form-check-label" for="enableHttps">
+                                启用HTTPS
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="baseDisplay" class="form-label">基础显示器编号</label>
+                                <input type="number" class="form-control" id="baseDisplay" value="1010">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="basePort" class="form-label">基础端口</label>
+                                <input type="number" class="form-control" id="basePort" value="15901">
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="createUsers()">创建用户</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 桌面同步模态框 -->
+<div class="modal fade" id="desktopSyncModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">桌面同步</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="desktopSyncForm">
+                    <div class="mb-3">
+                        <label for="sourceUser" class="form-label">源用户</label>
+                        <input type="text" class="form-control" id="sourceUser" value="tang" required>
+                        <div class="form-text">要复制桌面配置的源用户名</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">同步选项</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="syncDesktop" checked>
+                            <label class="form-check-label" for="syncDesktop">
+                                同步桌面文件
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="syncIcons" checked>
+                            <label class="form-check-label" for="syncIcons">
+                                同步应用图标
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="syncAutostart" checked>
+                            <label class="form-check-label" for="syncAutostart">
+                                同步自启动应用
+                            </label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="syncDesktop()">开始同步</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 全局变量
+let statusRefreshInterval;
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadSystemStatus();
+    loadServiceInfo();
+    loadRecentLogs();
+    
+    // 设置定时刷新
+    statusRefreshInterval = setInterval(loadSystemStatus, 5000);
+});
+
+// 加载系统状态
+async function loadSystemStatus() {
+    try {
+        const response = await fetch('/api/status');
+        const result = await response.json();
+        
+        if (result.success) {
+            const status = result.data.status;
+            document.getElementById('totalUsers').textContent = status.total_users;
+            document.getElementById('activeUsers').textContent = status.active_users;
+            document.getElementById('runningDisplays').textContent = status.running_displays + '/' + status.total_displays;
+            document.getElementById('cpuUsage').textContent = status.cpu_usage.toFixed(1) + '%';
+            document.getElementById('memoryUsage').textContent = status.memory_usage.toFixed(1) + '%';
+            document.getElementById('diskUsage').textContent = status.disk_usage.toFixed(1) + '%';
+        }
+    } catch (error) {
+        console.error('加载系统状态失败:', error);
+    }
+}
+
+// 加载服务信息
+async function loadServiceInfo() {
+    try {
+        const response = await fetch('/api/info');
+        const result = await response.json();
+        
+        if (result.success) {
+            const info = result.data.info;
+            document.getElementById('serviceVersion').textContent = info.version;
+            document.getElementById('uptime').textContent = formatUptime(info.uptime);
+        }
+    } catch (error) {
+        console.error('加载服务信息失败:', error);
+    }
+}
+
+// 加载最近日志
+async function loadRecentLogs() {
+    try {
+        const response = await fetch('/api/logs?limit=10');
+        const result = await response.json();
+        
+        if (result.success) {
+            const logs = result.data.logs;
+            const logsContainer = document.getElementById('recentLogs');
+            
+            if (logs.length === 0) {
+                logsContainer.innerHTML = '<div class="text-center text-muted"><i class="bi bi-info-circle"></i> 暂无操作记录</div>';
+                return;
+            }
+            
+            let html = '';
+            logs.reverse().forEach(log => {
+                const time = new Date(log.timestamp * 1000).toLocaleTimeString();
+                const statusClass = log.success ? 'text-success' : 'text-danger';
+                const icon = log.success ? 'bi-check-circle' : 'bi-x-circle';
+                
+                html += `
+                    <div class="small mb-2">
+                        <span class="text-muted">${time}</span>
+                        <i class="bi ${icon} ${statusClass}"></i>
+                        <strong>${log.operation}</strong>
+                        ${log.username ? '(' + log.username + ')' : ''}
+                        <br>
+                        <span class="text-muted">${log.details || log.error_message || ''}</span>
+                    </div>
+                `;
+            });
+            
+            logsContainer.innerHTML = html;
+        }
+    } catch (error) {
+        console.error('加载日志失败:', error);
+    }
+}
+
+// 显示创建用户模态框
+function showCreateUserModal() {
+    const modal = new bootstrap.Modal(document.getElementById('createUserModal'));
+    modal.show();
+}
+
+// 创建用户
+async function createUsers() {
+    const form = document.getElementById('createUserForm');
+    const formData = new FormData(form);
+    
+    const data = {
+        user_count: parseInt(document.getElementById('userCount').value),
+        enable_https: document.getElementById('enableHttps').checked,
+        base_display: parseInt(document.getElementById('baseDisplay').value),
+        base_port: parseInt(document.getElementById('basePort').value),
+        base_websocket_port: 4000
+    };
+    
+    try {
+        showLoading('正在创建用户...');
+        
+        const response = await fetch('/api/users/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        hideLoading();
+        
+        if (result.success) {
+            showToast('成功', result.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+            loadSystemStatus();
+        } else {
+            showToast('失败', result.message, 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showToast('错误', '创建用户失败: ' + error.message, 'error');
+    }
+}
+
+// 启动所有服务
+async function startAllServices() {
+    if (!confirm('确定要启动所有用户的VNC服务吗？')) {
+        return;
+    }
+    
+    try {
+        showLoading('正在启动服务...');
+        
+        const response = await fetch('/api/services/batch-control?action=start', {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        hideLoading();
+        
+        if (result.success) {
+            showToast('成功', result.message, 'success');
+            loadSystemStatus();
+        } else {
+            showToast('失败', result.message, 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showToast('错误', '启动服务失败: ' + error.message, 'error');
+    }
+}
+
+// 显示桌面同步模态框
+function showDesktopSyncModal() {
+    const modal = new bootstrap.Modal(document.getElementById('desktopSyncModal'));
+    modal.show();
+}
+
+// 同步桌面
+async function syncDesktop() {
+    const data = {
+        source_user: document.getElementById('sourceUser').value,
+        target_users: [],
+        sync_desktop: document.getElementById('syncDesktop').checked,
+        sync_icons: document.getElementById('syncIcons').checked,
+        sync_autostart: document.getElementById('syncAutostart').checked
+    };
+    
+    try {
+        showLoading('正在同步桌面...');
+        
+        const response = await fetch('/api/desktop/sync', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        hideLoading();
+        
+        if (result.success) {
+            showToast('成功', result.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('desktopSyncModal')).hide();
+        } else {
+            showToast('失败', result.message, 'error');
+        }
+    } catch (error) {
+        hideLoading();
+        showToast('错误', '桌面同步失败: ' + error.message, 'error');
+    }
+}
+
+// 格式化运行时间
+function formatUptime(seconds) {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (days > 0) {
+        return `${days}天 ${hours}小时 ${minutes}分钟`;
+    } else if (hours > 0) {
+        return `${hours}小时 ${minutes}分钟`;
+    } else {
+        return `${minutes}分钟`;
+    }
+}
+</script>
+{% endblock %}
